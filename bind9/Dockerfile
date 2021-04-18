@@ -1,6 +1,6 @@
-FROM alpine:3.13.1
+FROM alpine:3.13.5
 
-ARG BIND_VERSION=9.16.11-r0
+ARG BIND_VERSION=9.16.11-r1
 
 RUN apk add --no-cache bind=${BIND_VERSION} bind-tools=${BIND_VERSION}
 
