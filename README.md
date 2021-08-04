@@ -52,6 +52,6 @@ any ACME client your credentials for DNS server or hoster API.
     ```
 -   to get the certificate for the CSR, run:
     ```bash
-    docker-compose run --rm --user "$(id -u):$(id -g)" acme ; docker-compose down
+    docker-compose run --rm --user "$(id -u):$(id -g)" acme ; docker-compose down --volumes
     ```
     that's also what you need to run to renew your certificate(s)

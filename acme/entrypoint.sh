@@ -15,7 +15,7 @@ ensure_rsa_key() {
 
     if [ ! -e "$file_path" ]; then
         echo "generating new key: '$file_path'"
-        openssl genrsa "$bits" > "$file_path"
+        openssl genrsa "$bits" >"$file_path"
     else
         echo "key already exists: '$file_path'"
     fi
@@ -24,7 +24,7 @@ ensure_rsa_key() {
 ensure_domain_config() {
     local config_file="$1"
     local base_name
-    base_name=$( basename "$config_file" | sed 's/\.cfg//' )
+    base_name=$(basename "$config_file" | sed 's/\.cfg//')
     local csr_file="/certs/${base_name}.csr"
     local tmp_csr=/tmp/csr
     local domain_key_file="/certs/${base_name}.key"
@@ -51,7 +51,7 @@ ensure_domain_config() {
         fi
 
         # ignore leading hash (#)
-        if [ "$( echo "$line" | cut -c1-1 )" = '#' ]; then
+        if [ "$(echo "$line" | cut -c1-1)" = '#' ]; then
             continue
         fi
 
@@ -62,7 +62,7 @@ ensure_domain_config() {
         else
             alt_names="${alt_names},DNS:${line}"
         fi
-    done < "$config_file"
+    done <"$config_file"
 
     if [ -z "$alt_names" ]; then
         # no alternative names
@@ -73,8 +73,7 @@ ensure_domain_config() {
             -sha256 \
             -key "$domain_key_file" \
             -subj "/CN=${common_name}" \
-            > "$tmp_csr"
-        then
+            >"$tmp_csr"; then
             cp "$tmp_csr" "$csr_file"
             unlink "$tmp_csr"
         fi
@@ -89,10 +88,9 @@ ensure_domain_config() {
             -subj "/CN=${common_name}" \
             -reqexts SAN \
             -config \
-                <(cat /etc/ssl/openssl.cnf \
-                    <(printf "[SAN]\\nsubjectAltName=%s" "$alt_names")) \
-            > "$tmp_csr"
-        then
+            <(cat /etc/ssl/openssl.cnf \
+                <(printf "[SAN]\\nsubjectAltName=%s" "$alt_names")) \
+            >"$tmp_csr"; then
             cp "$tmp_csr" "$csr_file"
             unlink "$tmp_csr"
         fi
@@ -111,8 +109,7 @@ ensure_acme_config() {
     local key_file="/keys/${TSIG_KEY_NAME}"
     local key_secret
 
-    key_secret=$( grep secret "$key_file" | cut -d\" -f2 )
-
+    key_secret=$(grep secret "$key_file" | cut -d\" -f2)
 
     if [ "$ACME_SERVER" = staging ]; then
         acme_directory=https://acme-staging-v02.api.letsencrypt.org/directory
@@ -123,19 +120,16 @@ ensure_acme_config() {
         exit 1
     fi
 
-
     if [ ! -e "$ACCOUNT_KEY_FILE" ]; then
         echo "Missing account key file: '$ACCOUNT_KEY_FILE'"
         exit 1
     fi
-
 
     if [ -z "${key_secret}" ]; then
         echo "key_secret not set in '$key_file'"
         cat "$key_file"
         exit 1
     fi
-
 
     if [ -n "$ACME_CONTACTS" ]; then
         contacts_entry="Contacts = $ACME_CONTACTS"
@@ -161,13 +155,13 @@ Zone = ${CHALLENGE_ZONE}
 Host = ${CHALLENGE_NS}
 "
 
-    echo "$acme_config" > "$ACME_CONFIG_FILE"
+    echo "$acme_config" >"$ACME_CONFIG_FILE"
 }
 
 request_cert() {
     local csr_file="$1"
     local base_name
-    base_name=$( basename "$csr_file" | sed 's/\.csr//' )
+    base_name=$(basename "$csr_file" | sed 's/\.csr//')
     local tmp_cert=/tmp/cert
     local cert_file="/certs/${base_name}.pem"
 
@@ -181,7 +175,7 @@ request_cert() {
         exit 1
     fi
 
-    if acme_dns_tiny.py --verbose --csr "$csr_file" "$ACME_CONFIG_FILE" > "$tmp_cert"; then
+    if acme_dns_tiny.py --verbose --csr "$csr_file" "$ACME_CONFIG_FILE" >"$tmp_cert"; then
         cp "$tmp_cert" "$cert_file"
         unlink "$tmp_cert"
     fi
@@ -197,7 +191,7 @@ do_renew() {
         some_csr_files=true
         echo "csr_file: '$csr_file'"
         request_cert "$csr_file"
-    done < <( find /certs -name '*.csr' -print0 )
+    done < <(find /certs -name '*.csr' -print0)
 
     if [ $some_csr_files = false ]; then
         echo 'no sign request files found'
@@ -214,7 +208,7 @@ do_prepare() {
         some_cfg_files=true
         echo "config_file: '$config_file'"
         ensure_domain_config "$config_file"
-    done < <( find /certs -name '*.cfg' -print0 )
+    done < <(find /certs -name '*.cfg' -print0)
 
     if [ $some_cfg_files = false ]; then
         echo 'no domain config files found'
@@ -227,13 +221,13 @@ show_usage() {
 }
 
 case $1 in
-    prepare)
-        do_prepare
-        ;;
-    renew)
-        do_renew
-        ;;
-    *)
-        show_usage
-        ;;
+prepare)
+    do_prepare
+    ;;
+renew)
+    do_renew
+    ;;
+*)
+    show_usage
+    ;;
 esac

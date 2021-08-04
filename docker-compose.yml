@@ -1,59 +1,65 @@
 ---
 version: "3.7"
 
-services:
-    acme:
-        build:
-            context: acme
-        image: pabra/acme-dns-tiny
-        container_name: acme
-        init: true
-        environment:
-            CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
-            CHALLENGE_NS: ${CHALLENGE_NS:?CHALLENGE_NS not set}
-            TSIG_KEY_NAME: ${TSIG_KEY_NAME:?TSIG_KEY_NAME not set}
-            TSIG_KEY_ALGORITHM: ${TSIG_KEY_ALGORITHM:?TSIG_KEY_ALGORITHM not set}
-            ACME_CONTACTS: ${ACME_CONTACTS}
-            ACME_SERVER: ${ACME_SERVER:?ACME_SERVER not set}
-        depends_on:
-            - bind9
-        volumes:
-            - type: volume
-              source: tsig_keys
-              target: /keys
-              read_only: true
-            - type: bind
-              source: ./certs
-              target: /certs
-        networks:
-            - bind9-net
-        tty: true
+x-base-image: &base-image alpine:3.14.0
 
-    bind9:
-        build:
-            context: bind9
-        image: pabra/bind9
-        container_name: bind9
-        init: true
-        environment:
-            CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
-            CHALLENGE_NS: ${CHALLENGE_NS:?CHALLENGE_NS not set}
-            TSIG_KEY_NAME: ${TSIG_KEY_NAME:?TSIG_KEY_NAME not set}
-            TSIG_KEY_ALGORITHM: ${TSIG_KEY_ALGORITHM:?TSIG_KEY_ALGORITHM not set}
-        ports:
-            - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/tcp"
-            - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/udp"
-        volumes:
-            - type: volume
-              source: tsig_keys
-              target: /var/bind/keys
-        networks:
-            - bind9-net
+services:
+  acme:
+    build:
+      context: acme
+      args:
+        BASE_IMAGE: *base-image
+    image: pabra/acme-dns-tiny:dev
+    container_name: acme
+    init: true
+    environment:
+      CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
+      CHALLENGE_NS: ${CHALLENGE_NS:?CHALLENGE_NS not set}
+      TSIG_KEY_NAME: ${TSIG_KEY_NAME:?TSIG_KEY_NAME not set}
+      TSIG_KEY_ALGORITHM: ${TSIG_KEY_ALGORITHM:?TSIG_KEY_ALGORITHM not set}
+      ACME_CONTACTS: ${ACME_CONTACTS}
+      ACME_SERVER: ${ACME_SERVER:?ACME_SERVER not set}
+    depends_on:
+      - bind9
+    volumes:
+      - type: volume
+        source: tsig_keys
+        target: /keys
+        read_only: true
+      - type: bind
+        source: ./certs
+        target: /certs
+    networks:
+      - bind9-net
+    tty: true
+
+  bind9:
+    build:
+      context: bind9
+      args:
+        BASE_IMAGE: *base-image
+    image: pabra/bind9:dev
+    container_name: bind9
+    init: true
+    environment:
+      CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
+      CHALLENGE_NS: ${CHALLENGE_NS:?CHALLENGE_NS not set}
+      TSIG_KEY_NAME: ${TSIG_KEY_NAME:?TSIG_KEY_NAME not set}
+      TSIG_KEY_ALGORITHM: ${TSIG_KEY_ALGORITHM:?TSIG_KEY_ALGORITHM not set}
+    ports:
+      - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/tcp"
+      - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/udp"
+    volumes:
+      - type: volume
+        source: tsig_keys
+        target: /var/bind/keys
+    networks:
+      - bind9-net
 
 networks:
-    bind9-net:
-        name: ${DNS_NETWORK_NAME:-dns}
+  bind9-net:
+    name: ${DNS_NETWORK_NAME:-dns}
 
 volumes:
-    tsig_keys:
-        name: ${TSIG_VOLUME_NAME:-tsig_keys}
+  tsig_keys:
+    name: ${TSIG_VOLUME_NAME:-tsig_keys}

@@ -1,12 +1,13 @@
-FROM alpine:3.13.5
+ARG BASE_IMAGE=
+FROM ${BASE_IMAGE}
 
-ARG BIND_VERSION=9.16.15-r1
+ARG BIND_VERSION=9.16.16-r2
 
 RUN apk add --no-cache bind=${BIND_VERSION} bind-tools=${BIND_VERSION}
 
 VOLUME ["/var/bind/keys"]
 
-ADD entrypoint.sh /usr/local/bin/
+COPY entrypoint.sh /usr/local/bin/
 
 ENTRYPOINT ["entrypoint.sh"]
 
