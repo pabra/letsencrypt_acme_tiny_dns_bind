@@ -55,3 +55,49 @@ any ACME client your credentials for DNS server or hoster API.
     docker-compose run --rm --user "$(id -u):$(id -g)" acme ; docker-compose down --volumes
     ```
     that's also what you need to run to renew your certificate(s)
+
+# Tests
+
+To test the setup (in dev branch?) you could do:
+
+-   **ensure to use a separate directory** (do not mix with config, certificates and keys you need for production)
+-   setup DNS as described above
+-   copy and fill `.env` as described above **ensure to set `ACME_SERVER=staging` for testing**
+-   place this script in the root of your test directory:
+
+    ```bash
+    #!/bin/sh
+
+    MY_DOMAIN='example.com'
+
+    set -e
+
+    cleanup() {
+        docker-compose down --volumes
+    }
+
+    trap cleanup EXIT INT
+
+    if [ -e ./certs/account.key ]; then unlink ./certs/account.key; fi
+    if [ -e ./certs/${MY_DOMAIN}.csr ]; then unlink ./certs/${MY_DOMAIN}.csr; fi
+    if [ -e ./certs/${MY_DOMAIN}.key ]; then unlink ./certs/${MY_DOMAIN}.key; fi
+    if [ -e ./certs/${MY_DOMAIN}.pem ]; then unlink ./certs/${MY_DOMAIN}.pem; fi
+
+    {
+        echo '# common name'
+        echo "${MY_DOMAIN}"
+        echo ''
+        echo '# alternative names'
+        echo "*.${MY_DOMAIN}"
+    } >./certs/${MY_DOMAIN}.cfg
+
+    docker-compose build --pull
+    docker-compose run --no-deps --rm --user "$(id -u):$(id -g)" acme prepare
+    docker-compose run --rm --user "$(id -u):$(id -g)" acme
+
+    TXT_CERT="$(openssl x509 -text -in ./certs/${MY_DOMAIN}.pem)"
+    echo "${TXT_CERT}" | grep 'Issuer:'
+    echo "${TXT_CERT}" | grep 'Validity' -A 2
+    echo "${TXT_CERT}" | grep 'Subject:'
+    echo "${TXT_CERT}" | grep 'Subject Alternative Name' -A 1
+    ```
