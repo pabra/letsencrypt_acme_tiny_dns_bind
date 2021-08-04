@@ -9,7 +9,7 @@ services:
       context: acme
       args:
         BASE_IMAGE: *base-image
-    image: pabra/acme-dns-tiny:dev
+    image: pabra/acme-dns-tiny:latest
     container_name: acme
     init: true
     environment:
@@ -38,7 +38,7 @@ services:
       context: bind9
       args:
         BASE_IMAGE: *base-image
-    image: pabra/bind9:dev
+    image: pabra/bind9:latest
     container_name: bind9
     init: true
     environment:
