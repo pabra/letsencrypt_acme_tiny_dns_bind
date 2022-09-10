@@ -10,7 +10,7 @@ set -ex
 
 KEY_FILE="/var/bind/keys/${TSIG_KEY_NAME}"
 
-tsig-keygen -a "$TSIG_KEY_ALGORITHM" "$TSIG_KEY_NAME" > "$KEY_FILE"
+tsig-keygen -a "$TSIG_KEY_ALGORITHM" "$TSIG_KEY_NAME" >"$KEY_FILE"
 
 cat "$KEY_FILE"
 
@@ -38,8 +38,8 @@ options {
     querylog yes;
 };
 "
-    # allow-recursion { none; };
-    # recursion no;
+# allow-recursion { none; };
+# recursion no;
 
 ZONEFILE=
 ZONE=
@@ -55,7 +55,7 @@ zone \"${ZONE}\" IN {
     allow-update { key ${TSIG_KEY_NAME}; };
 };
 "
-    echo "$ZONEFILE_CONTENT" > "$ZONEFILE"
+    echo "$ZONEFILE_CONTENT" >"$ZONEFILE"
     chown named "$ZONEFILE"
 done
 
@@ -63,7 +63,7 @@ echo 'conf:'
 echo "$NAMED_CONF"
 # printf "%s" "$NAMED_CONF"
 
-echo "$NAMED_CONF" > /etc/bind/named.conf
+echo "$NAMED_CONF" >/etc/bind/named.conf
 # echo "" > /etc/bind/named.conf
 
 exec "$@"
