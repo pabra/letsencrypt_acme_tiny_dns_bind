@@ -1,6 +1,4 @@
 ---
-version: "3.7"
-
 x-base-image: &base-image alpine:3.21.0
 
 services:
