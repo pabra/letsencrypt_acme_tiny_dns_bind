@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=
 FROM ${BASE_IMAGE}
 
-ARG BIND_VERSION=9.18.19-r1
+ARG BIND_VERSION=9.18.37-r0
 
 RUN apk add --no-cache bind=${BIND_VERSION} bind-tools=${BIND_VERSION}
 
