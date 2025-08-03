@@ -1,3 +1,10 @@
+# Archived
+
+**This repo is archived.**
+
+[There is a successor](https://github.com/pabra/letsencrypt_acme_certbot_bind_docker)
+using certbot instead of acme_tiny.
+
 # What
 
 Let's assume your domain is `example.com` and you want to issue a Let's Encrypt
